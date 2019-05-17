@@ -1,4 +1,4 @@
-function [] = plot_mef1d(U,sol,lim_dom)
+function [] = plot_mef1d(U,sol,lim_dom,err)
 % PLOT_MEF1D
 % Trace la sortie de la fonction SOLVE_MEF1D. Possibilité de tracer la solution
 % analytique pour comparer.
@@ -12,6 +12,8 @@ function [] = plot_mef1d(U,sol,lim_dom)
 % - lim_dom (facultatif): domaine sur lequel on trace la solution
 % analytique. Doit être obligatoirement spécifié si sol est passé en
 % paramètre.
+%
+% - err (facultatif): Erreur en norme L^2 à afficher sur le graphique.
 
 [~,m] = size(U);
 figure;
@@ -23,9 +25,13 @@ end
 if nargin>1
     d = linspace(lim_dom(1),lim_dom(2),(lim_dom(2)-lim_dom(1))*30);
     c2=plot(d,sol(d),"b--","LineWidth",2);
-    legend([c1 c2],"Numérique", "Analytique");
+    legend([c1 c2],"Numérique (u_k)", "Analytique (u)");
 end
-title("Solutions de p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x)");
+if nargin==4
+    dim = [.2 .5 .3 .3];
+    annotation('textbox',dim,'String',sprintf("||u-u_k||_{L^2} = %e",err),'Position',[0.15 0.8 0.1 0.1],'FitBoxToText','on','BackgroundColor','white');
+end 
+title("Solutions de p(x){\cdot}u(x)-d_x[q(x){\cdot}d_x[u(x)]]=R(x)");
 xlabel("x");
 ylabel("u(x)");
 hold off;

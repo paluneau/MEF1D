@@ -14,8 +14,9 @@ dirichlet1 = [0 2];
 
 sol_analytique_laplacien = @(x)-5/2.*x.^2+129/10.*x;
 
-[U1, err_L2] = solve_mef1d(p1,q1,R1,Omega1,1,dirichlet1,2,sol_analytique_laplacien);
-plot_mef1d(U1,sol_analytique_laplacien,Omega1);
+[~, uk1, err_L2] = solve_mef1d(p1,q1,R1,Omega1,10,dirichlet1,2,sol_analytique_laplacien);
+plot_mef1d(uk1,sol_analytique_laplacien,Omega1,err_L2);
+
 
 %% Problème de tension dans un câble
 % Trouver u(x) t.q. -d_x[400*d_x[u(x)]]=r(x) avec conditions aux
@@ -25,8 +26,8 @@ q2=@(x)400; % Tension dans le cable
 R2=@(x)r(x); % Poids linéaire du cable + Poids ajouté, défini plus bas.
 dirichlet2=[0 0];
 
-[U2,~] = solve_mef1d(p2,q2,R2,Omega1,10,dirichlet2,2);
-plot_mef1d(U2);
+[~,uk2,~] = solve_mef1d(p2,q2,R2,Omega1,10,dirichlet2,2);
+plot_mef1d(uk2);
 
 % Représente le poids linéaire du câble et une masse non constante répartie
 % sur la partie gauche du câble.

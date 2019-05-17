@@ -1,5 +1,5 @@
 
-function [u_k,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_lim,deg,sol_analytique)
+function [u_nodal,u_graph,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_lim,deg,sol_analytique)
 % SOLVE_MEF1D
 % Calcule une solution approchée de u(x) t.q.
 % p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x) avec conditions aux limites de type Dirichlet.
@@ -24,8 +24,10 @@ function [u_k,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_lim,deg,sol_analyt
 %
 % !!! Sortie !!!
 %
-% - us: un tableau 2 par n_elem qui contient la fonction u_i et l'élément K_i
-% sur lequel elle est définie
+% - u_nodal: le vecteur des valeurs nodales de de la solution approchée.
+%
+% - u_graph: un tableau 2 par n_elem qui contient la fonction u_i et l'élément K_i
+% sur lequel elle est définie.
 %
 % - err_L2: l'erreur en norme L^2 par rapport à la solution analytique
 % fournie (si pas fournie, NaN).
@@ -98,7 +100,7 @@ U_g(numer(noeuds_imposes))= cond_lim_valides;
 T=@(x1,x2,y)(x1+x2+(abs(x2-x1).*y))./2;
 T_i=@(x1,x2,x)(2.*x-(x1+x2))./abs(x2-x1);
 
-%% Définition des fonctions d'interpolation sur l'élément de référence
+%% Définition des fonctions d'interpolation de Lagrange sur l'élément de référence
 if deg==2 % Quadratique
     f1_hat = @(y)y.*(y-1)./2;
     f2_hat = @(y)y.*(y+1)./2;
@@ -125,10 +127,9 @@ ptsGauss = [-sqrt(3./5.) 0 sqrt(3./5.)];
 wGauss = [5/9 8/9 5/9];
 
 %% Assemblage
-A = zeros(n_noeuds,n_noeuds);
-M = zeros(n_noeuds,n_noeuds);
+A = zeros(n_noeuds,n_noeuds); % matrice de rigidité
+M = zeros(n_noeuds,n_noeuds); % matrice de masse (pour calculer l'erreur)
 F = zeros(1,n_noeuds);
-S = zeros(1,n_noeuds);
 for i=1:n_elem % Boucle sur les éléments (i)
     x1 = coord(connec(i,1));
     x2 = coord(connec(i,2));
@@ -149,7 +150,7 @@ for i=1:n_elem % Boucle sur les éléments (i)
             Ajk = @(y)(h/2).*p(T(x1,x2,y)).*fi_hat{k}(y).*fi_hat{j}(y)+(2/h).*q(T(x1,x2,y)).*dfi_hat{k}(y).*dfi_hat{j}(y);
             Mjk = @(y)(h/2).*fi_hat{k}(y).*fi_hat{j}(y);
             A(adr1,adr2)=A(adr1,adr2)+(Ajk(ptsGauss) * wGauss');
-            M(adr1,adr2)=M(adr1,adr2)+(Mjk(ptsGauss) * wGauss');
+            M(adr1,adr2)=M(adr1,adr2)+(Mjk(ptsGauss) * wGauss'); % Pour calculer l'erreur
         end  
     end  
 end
@@ -160,10 +161,10 @@ del_U_I = A(1:dim11,1:dim11)\(F(1:dim11)');
 del_U_C = zeros(dim22,1);
 del_U = [del_U_I;del_U_C];
 U = del_U + U_g;
-
+u_nodal = U(numer); % Renuméroter les DDLs selon l'ordre des noeuds
 %% Calcul de l'erreur en norme L^2 (si sol_analytique donnée)
 if nargin >7
-    ecart = U(numer)-sol_analytique(coord');
+    ecart = u_nodal-sol_analytique(coord');
     err_L2 = sqrt(ecart'*M*ecart);
 else
     err_L2 = NaN;
@@ -171,18 +172,18 @@ end
 %% Solution par élément
 % Sur chaque élément, on regarde les coefficients qu'on a trouvé et on
 % exprime les points par combinaison linéaire des fonctions de base.
-u_k = cell(2,n_elem);
+u_graph = cell(2,n_elem);
 for i = 1:n_elem
     x1 = coord(connec(i,1));
     x2 = coord(connec(i,2));
-    K = linspace(x1,x2,(x2-x1)*100);
-    u_i = U(numer(connec(i,:)));
+    K = linspace(x1,x2,(x2-x1)*20);
+    u_i = u_nodal(connec(i,:));
     u = @(x)0;
     for j=1:n_total_noeuds_elem
         u = @(x)u(x)+u_i(j)*fi_hat{j}(x);
     end
-    u_k{1,i}=@(x)u(T_i(x1,x2,x));
-    u_k{2,i}=K;
+    u_graph{1,i}=@(x)u(T_i(x1,x2,x));
+    u_graph{2,i}=K;
 end
 end
 
