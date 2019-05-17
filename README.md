@@ -8,6 +8,7 @@ This code was made entirely for educational purposes, and in no means does it pr
 where *p(x),q(x),R(x)* are parameters depending on the problem. Dirichlet conditions (fixed value of *u*) are imposed on the boundaries of the domain (*a,b*). **Linear** and **quadratic** shape functions are available for the discretization. You can plot the resulting approximate solution with *plot_mef1d()*. Also, if you have computed the analytic solution to your problem and you just want to compare it with the numerical solution, *solve_mef1d()* can give you the L<sup>2</sup> error on your approximate solution, and *plot_mef1d()* can plot both on the same graph for a visual comparison.
 ## Future Functionalities
 * An option to add "point loads" (Diracs) on specific nodes will be implemented eventually;
+* Possibility of using Neumann boundary conditions;
 * Comments will be translated to english;
 * Other example problems will be added;
 * Maybe some refactoring of the code (dividing the code into smaller modules).
