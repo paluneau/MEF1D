@@ -1,9 +1,16 @@
 close all;clear all;
-%% Problème type
-% Trouver u(x) t.q. p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x) avec conditions aux
-% limites de Dirichlet
+%% Problème analytique (solution approchée)
+% Trouver u(x) t.q. u(x)-d^2_x[u(x)]=x avec conditions aux
+% limites de Dirichlet homogènes u(0)=u(1)=0
 
-%% Problème de laplacien
+p = @(x)1;
+q = @(x)1;
+R = @(x)x;
+sol_analytique=@(x)x-(sinh(x)./sinh(1));
+[~,u_graph,err]=solve_mef1d(p,q,R,[0 1],20,[0 0],2,sol_analytique);
+plot_mef1d(u_graph,sol_analytique,[0 1],err);
+
+%% Problème de laplacien (avec solution exacte en P2)
 % Trouver u(x) t.q. -d^2_x[u(x)]=5 avec conditions aux
 % limites de Dirichlet u(0)=0 et u(5)=2
 p1=@(x)0;
@@ -20,7 +27,7 @@ plot_mef1d(uk1,sol_analytique_laplacien,Omega1,err_L2);
 
 %% Problème de tension dans un câble
 % Trouver u(x) t.q. -d_x[400*d_x[u(x)]]=r(x) avec conditions aux
-% limites de Dirichlet u(0)=u(5)=0
+% limites de Dirichlet homogènes u(0)=u(5)=0
 p2=@(x)0;
 q2=@(x)400; % Tension dans le cable
 R2=@(x)r(x); % Poids linéaire du cable + Poids ajouté, défini plus bas.

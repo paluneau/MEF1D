@@ -3,42 +3,47 @@ close all;clear all;
 % Trouver u(x) t.q. p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x) avec conditions aux
 % limites de Dirichlet
 
-%% Problème de laplacien
-% Trouver u(x) t.q. -d^2_x[u(x)]=5 avec conditions aux
-% limites de Dirichlet u(0)=0 et u(5)=2
-p1=@(x)0;
-q1=@(x)1;
-R1=@(x)5; % En mettant une constante non-nulle, on s'assure d'avoir un polynome de degré 2 comme solution
-Omega1 = [0 5];
-dirichlet1 = [0 2];
+p = @(x)3;
+q = @(x)1;
+R = @(x)1;
+[u_k,u_graph,~]=solve_mef1d(p
 
-sol_analytique_laplacien = @(x)-5/2.*x.^2+129/10.*x;
-
-[uk1, err_L2] = solve_mef1d(p1,q1,R1,Omega1,10,dirichlet1,2,sol_analytique_laplacien);
-plot_mef1d(U1,sol_analytique_laplacien,Omega1);
-fprintf("||u-uk||_L^2 = %0.6f\n",err_L2);
-
-%% Problème de tension dans un câble
-% Trouver u(x) t.q. -d_x[400*d_x[u(x)]]=r(x) avec conditions aux
-% limites de Dirichlet u(0)=u(5)=0
-p2=@(x)0;
-q2=@(x)400; % Tension dans le cable
-R2=@(x)r(x); % Poids linéaire du cable + Poids ajouté, défini plus bas.
-dirichlet2=[0 0];
-
-[uk2,~] = solve_mef1d(p2,q2,R2,Omega1,10,dirichlet2,2);
-plot_mef1d(uk2);
-
-% Représente le poids linéaire du câble et une masse non constante répartie
-% sur la partie gauche du câble.
-function y = r(x)
-[~,dim] = size(x);
-y = zeros(1,dim);
-for i=1:dim
-    if 0<=x(i) && x(i)<=2
-        y(i)=-6-40*x(i);
-    elseif 2<=x(i) && x(i)<=5
-        y(i)=-6;
-    end
-end
-end
+% %% Problème de laplacien
+% % Trouver u(x) t.q. -d^2_x[u(x)]=5 avec conditions aux
+% % limites de Dirichlet u(0)=0 et u(5)=2
+% p1=@(x)0;
+% q1=@(x)1;
+% R1=@(x)5; % En mettant une constante non-nulle, on s'assure d'avoir un polynome de degré 2 comme solution
+% Omega1 = [0 5];
+% dirichlet1 = [0 2];
+% 
+% sol_analytique_laplacien = @(x)-5/2.*x.^2+129/10.*x;
+% 
+% [~, uk1, err_L2] = solve_mef1d(p1,q1,R1,Omega1,10,dirichlet1,2,sol_analytique_laplacien);
+% plot_mef1d(uk1,sol_analytique_laplacien,Omega1,err_L2);
+% 
+% 
+% %% Problème de tension dans un câble
+% % Trouver u(x) t.q. -d_x[400*d_x[u(x)]]=r(x) avec conditions aux
+% % limites de Dirichlet u(0)=u(5)=0
+% p2=@(x)0;
+% q2=@(x)400; % Tension dans le cable
+% R2=@(x)r(x); % Poids linéaire du cable + Poids ajouté, défini plus bas.
+% dirichlet2=[0 0];
+% 
+% [~,uk2,~] = solve_mef1d(p2,q2,R2,Omega1,10,dirichlet2,2);
+% plot_mef1d(uk2);
+% 
+% % Représente le poids linéaire du câble et une masse non constante répartie
+% % sur la partie gauche du câble.
+% function y = r(x)
+% [~,dim] = size(x);
+% y = zeros(1,dim);
+% for i=1:dim
+%     if 0<=x(i) && x(i)<=2
+%         y(i)=-6-40*x(i);
+%     elseif 2<=x(i) && x(i)<=5
+%         y(i)=-6;
+%     end
+% end
+% end
