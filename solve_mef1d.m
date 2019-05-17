@@ -1,8 +1,8 @@
 
-function [u_nodal,u_graph,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_lim,deg,sol_analytique)
+function [u_nodal,u_graph,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_dirichlet,cond_neumann,deg,sol_analytique)
 % SOLVE_MEF1D
 % Calcule une solution approchée de u(x) t.q.
-% p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x) avec conditions aux limites de type Dirichlet.
+% p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x) avec conditions aux limites de type Dirichlet ou Neumann.
 %
 % !!! Paramètres !!!
 %
@@ -13,7 +13,11 @@ function [u_nodal,u_graph,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_lim,de
 %
 % - n_elem: le nombre d'éléments voulu pour le maillage uniforme sur le domaine.
 %
-% - cond_lim: un vecteur de la forme [x y], tel que u(a)=x et u(b)=y, les
+% - cond_dirichlet: un vecteur de la forme [x y], tel que u(a)=x et u(b)=y, les
+% conditions aux limites du domaine. Si on ne veut pas imposer un bord, on
+% doit mettre NaN.
+%
+% - cond_neumann: un vecteur de la forme [x y], tel que d_x[u](a)=x et d_x[u](b)=y, les
 % conditions aux limites du domaine. Si on ne veut pas imposer un bord, on
 % doit mettre NaN.
 %
@@ -41,18 +45,19 @@ if deg==1
 end
 n_noeuds = n_total_noeuds_elem*n_elem-n_elem+1;
 
-% Prétraitement des conditions initiales et des noeuds imposés
+% Prétraitement des conditions initiales dirichlet et des noeuds imposés
 noeuds_imposes = [];
 cond_lim_valides = [];
-if ~isnan(cond_lim(1))
+if ~isnan(cond_dirichlet(1))
     noeuds_imposes = [noeuds_imposes 1];
-    cond_lim_valides = [cond_lim_valides cond_lim(1)];
+    cond_lim_valides = [cond_lim_valides cond_dirichlet(1)];
 end
-if ~isnan(cond_lim(2))
+if ~isnan(cond_dirichlet(2))
     noeuds_imposes = [noeuds_imposes n_noeuds];
-    cond_lim_valides = [cond_lim_valides cond_lim(2)];
+    cond_lim_valides = [cond_lim_valides cond_dirichlet(2)];
 end
 [~,n_noeuds_imposes] = size(noeuds_imposes);
+
 
 % Coordonnées des noeuds 
 coord = linspace(lim_dom(1),lim_dom(2),n_noeuds); % Maillage uniforme sur le domaine
@@ -92,6 +97,15 @@ for i=1:n_noeuds
     end
 end
 
+% Traitement des conditions de Neumann
+S = zeros(1,n_noeuds);
+if ~isnan(cond_neumann(1))
+    S(numer(connec(1,1)))=cond_neumann(1);
+end
+if ~isnan(cond_neumann(2))
+    S(numer(connec(n_elem,2)))=cond_neumann(2);
+end
+
 % Relèvement des conditions
 U_g=zeros(n_noeuds,1); 
 U_g(numer(noeuds_imposes))= cond_lim_valides;
@@ -126,7 +140,7 @@ end
 ptsGauss = [-sqrt(3./5.) 0 sqrt(3./5.)];
 wGauss = [5/9 8/9 5/9];
 
-%% Assemblage
+%% Assemblage (approche en correction)
 A = zeros(n_noeuds,n_noeuds); % matrice de rigidité
 M = zeros(n_noeuds,n_noeuds); % matrice de masse (pour calculer l'erreur)
 F = zeros(1,n_noeuds);
@@ -155,15 +169,14 @@ for i=1:n_elem % Boucle sur les éléments (i)
     end  
 end
 %% Résolution du système global (approche en correction)
-[~,dim22]=size(noeuds_imposes);
-dim11 = n_noeuds - dim22;
-del_U_I = A(1:dim11,1:dim11)\(F(1:dim11)');
-del_U_C = zeros(dim22,1);
+n_inconnus = n_noeuds - n_noeuds_imposes;
+del_U_I = A(1:n_inconnus,1:n_inconnus)\((F(1:n_inconnus)+S(1:n_inconnus))');
+del_U_C = zeros(n_noeuds_imposes,1);
 del_U = [del_U_I;del_U_C];
 U = del_U + U_g;
 u_nodal = U(numer); % Renuméroter les DDLs selon l'ordre des noeuds
 %% Calcul de l'erreur en norme L^2 (si sol_analytique donnée)
-if nargin >7
+if nargin >8
     ecart = u_nodal-sol_analytique(coord');
     err_L2 = sqrt(ecart'*M*ecart);
 else
