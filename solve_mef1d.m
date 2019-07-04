@@ -141,8 +141,8 @@ ptsGauss = [-sqrt(3./5.) 0 sqrt(3./5.)];
 wGauss = [5/9 8/9 5/9];
 
 %% Assemblage (approche en correction)
-A = zeros(n_noeuds,n_noeuds); % matrice de rigidité
-M = zeros(n_noeuds,n_noeuds); % matrice de masse (pour calculer l'erreur)
+A = sparse(n_noeuds,n_noeuds); % matrice de rigidité
+M = sparse(n_noeuds,n_noeuds); % matrice de masse (pour calculer l'erreur)
 F = zeros(1,n_noeuds);
 for i=1:n_elem % Boucle sur les éléments (i)
     x1 = coord(connec(i,1));

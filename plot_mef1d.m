@@ -5,7 +5,7 @@ function [] = plot_mef1d(U,sol,lim_dom,err)
 %
 % !!! Paramètres !!!
 %
-% - U: la sortie de la fonctionSOLVE_MEF1D
+% - U: la sortie de la fonction SOLVE_MEF1D
 %
 % - sol (facultatif): la solution analytique du problème (function handle).
 %
