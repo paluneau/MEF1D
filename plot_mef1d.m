@@ -19,7 +19,7 @@ function [] = plot_mef1d(U,sol,lim_dom,err)
 figure;
 hold on;
 for i=1:m
-    c1=plot(U{2,i},U{1,i}(U{2,i}),"r","LineWidth",1);
+    c1=plot(U{3,i},U{1,i}(U{3,i}),"r","LineWidth",1);
 end
 
 if nargin>1
@@ -29,7 +29,7 @@ if nargin>1
 end
 if nargin==4
     dim = [.2 .5 .3 .3];
-    annotation('textbox',dim,'String',sprintf("||u-u_k||_{L^2} = %e",err),'Position',[0.15 0.8 0.1 0.1],'FitBoxToText','on','BackgroundColor','white');
+    annotation('textbox',dim,'String',sprintf("||u-u_h|| = %e",err),'Position',[0.15 0.8 0.1 0.1],'FitBoxToText','on','BackgroundColor','white');
 end 
 title("Solutions de p(x){\cdot}u(x)-d_x[q(x){\cdot}d_x[u(x)]]=R(x)");
 xlabel("x");

@@ -1,5 +1,5 @@
 
-function [u_nodal,u_graph,err_L2] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_dirichlet,cond_neumann,deg,sol_analytique)
+function [u_nodal,u_graph,err_L2,err_H10,err_H1] = solve_mef1d(p,q,R,lim_dom,n_elem,cond_dirichlet,cond_neumann,deg,sol_analytique,sol_analytique_grad)
 % SOLVE_MEF1D
 % Calcule une solution approchée de u(x) t.q.
 % p(x)*u(x)-d_x[q(x)*d_x[u(x)]]=R(x) avec conditions aux limites de type Dirichlet ou Neumann.
@@ -175,28 +175,44 @@ del_U_C = zeros(n_noeuds_imposes,1);
 del_U = [del_U_I;del_U_C];
 U = del_U + U_g;
 u_nodal = U(numer); % Renuméroter les DDLs selon l'ordre des noeuds
-%% Calcul de l'erreur en norme L^2 (si sol_analytique donnée)
-if nargin >8
-    ecart = u_nodal-sol_analytique(coord');
-    err_L2 = sqrt(ecart'*M*ecart);
-else
-    err_L2 = NaN;
-end
-%% Solution par élément
+%% Solution par élément + Calcul d'erreur
 % Sur chaque élément, on regarde les coefficients qu'on a trouvé et on
 % exprime les points par combinaison linéaire des fonctions de base.
-u_graph = cell(2,n_elem);
+if nargin >8
+    err_L2 = 0;
+    err_H10 = 0;
+    err_H1 = 0;
+else
+    err_L2 = NaN;
+    err_H10 = NaN;
+    err_H1 = NaN;
+end
+
+u_graph = cell(3,n_elem);
 for i = 1:n_elem
     x1 = coord(connec(i,1));
     x2 = coord(connec(i,2));
+    h = abs(x2 - x1);
     K = linspace(x1,x2,(x2-x1)*100);
     u_i = u_nodal(connec(i,:));
     u = @(x)0;
+    du = @(x)0;
     for j=1:n_total_noeuds_elem
         u = @(x)u(x)+u_i(j)*fi_hat{j}(x);
+        du = @(x)du(x)+u_i(j)*dfi_hat{j}(x)*2/h;
     end
     u_graph{1,i}=@(x)u(T_i(x1,x2,x));
-    u_graph{2,i}=K;
+    u_graph{2,i}=@(x)du(T_i(x1,x2,x));
+    if nargin>8
+        err_L2 = err_L2 + integral(@(x)(u_graph{1,i}(x)-sol_analytique(x)).^2,x1,x2,'AbsTol',1e-15);
+        err_H10 = err_H10 + integral(@(x)(u_graph{2,i}(x)-sol_analytique_grad(x)).^2,x1,x2,'AbsTol',1e-15);
+    end
+    u_graph{3,i}=K;
 end
+err_L2 = sqrt(err_L2);
+err_H10 = sqrt(err_H10);
+err_H1 = sqrt(err_L2^2 + err_H10^2);
 end
+
+
 
