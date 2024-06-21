@@ -27,6 +27,11 @@ dsol_analytique = @(x)-5.*x+129/10;
 [~, uk1, ~,~,err_H1] = solve_mef1d(p,q,R,[0 5],1,[0 2],[NaN NaN],2,sol_analytique,dsol_analytique);
 plot_mef1d(uk1,sol_analytique,[0 5],err_H1);
 
+% Calculer une quantité auxiliaire, par exemple la fonctionnelle d'énergie
+uh = @(x) eval_mef1d(uk1, x);
+duh = @(x) eval_mef1d(uk1, x, true);
+Juh = integral(@(x)0.5*duh(x).^2 - R(x)*uh(x),0,5);
+
 %% Problème de laplacien dirichlet-neumann (solution approchée)
 % Trouver u(x) t.q. -d^2_x[u(x)]=x avec conditions aux
 % limites u(0)=0 et d_x[u](1)=0
