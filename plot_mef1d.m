@@ -25,7 +25,7 @@ end
 if nargin>1
     d = linspace(lim_dom(1),lim_dom(2),(lim_dom(2)-lim_dom(1))*30);
     c2=plot(d,sol(d),"b--","LineWidth",2);
-    legend([c1 c2],"Numérique (u_k)", "Analytique (u)");
+    legend([c1 c2],"Numérique (u_h)", "Analytique (u)");
 end
 if nargin==4
     dim = [.2 .5 .3 .3];
